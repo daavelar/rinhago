@@ -10,8 +10,8 @@ import (
 func main() {
 	r := gin.Default()
 
-	r.GET("/clientes/:id/extrato", handlers.listBankStatement)
-	r.POST("/clientes/:id/transacoes", handlers.createTransaction)
+	r.GET("/clientes/:id/extrato", handler.listBankStatement)
+	r.POST("/clientes/:id/transacoes", handler.createTransaction)
 
 	if err := r.Run(":9999"); err != nil {
 		log.Fatal(err)

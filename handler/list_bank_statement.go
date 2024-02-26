@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"rinhago/structs"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -9,6 +10,8 @@ import (
 
 func listBankStatement(c *gin.Context) {
 	id := c.Param("id")
+
+	db := database.connect()
 
 	query := `
 		SELECT transactions.id, transactions.value, transactions.type, transactions.description, transactions.created_at
@@ -24,10 +27,10 @@ func listBankStatement(c *gin.Context) {
 	}
 	defer rows.Close()
 
-	var transactions []Transaction = []Transaction{}
+	var transactions []structs.Transaction = []structs.Transaction{}
 
 	for rows.Next() {
-		var transaction Transaction
+		var transaction structs.Transaction
 		if err := rows.Scan(&transaction.ID, &transaction.Value, &transaction.Type, &transaction.Description, &transaction.CreatedAt); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 			return
@@ -36,7 +39,7 @@ func listBankStatement(c *gin.Context) {
 	}
 
 	customerQuery := "SELECT balance, `limit` FROM customers WHERE id = ?"
-	var customer Customer
+	var customer structs.Customer
 	err = db.QueryRow(customerQuery, id).Scan(&customer.Balance, &customer.Limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao obter informações do cliente"})
