@@ -7,6 +7,8 @@ services:
             context: .
         depends_on:
             - mysql
+        networks:
+            - rinha
         deploy:
             resources:
                 limits:
@@ -26,6 +28,8 @@ services:
             - api02
         ports:
             - "9999:9999"
+        networks:
+            - rinha
         deploy:
             resources:
                 limits:
@@ -44,6 +48,8 @@ services:
             - "3306:3306"
         volumes:
             - mysql-vol:/var/lib/mysql
+        networks:
+            - rinha
         deploy:
             resources:
                 limits:
@@ -52,3 +58,7 @@ services:
 
 volumes:
     mysql-vol:
+
+networks:
+  rinha:
+    driver: bridge
