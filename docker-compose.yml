@@ -13,7 +13,7 @@ services:
             resources:
                 limits:
                     cpus: "0.5"
-                    memory: "100MB"
+                    memory: "175MB"
     api02:
         <<: *api
         container_name: api02
@@ -34,7 +34,7 @@ services:
             resources:
                 limits:
                     cpus: "0.1"
-                    memory: "50MB"
+                    memory: "130MB"
 
     mysql:
         image: mysql:8
@@ -54,7 +54,7 @@ services:
             resources:
                 limits:
                     cpus: "0.4"
-                    memory: "300MB"
+                    memory: "1370MB"
 
 volumes:
     mysql-vol:

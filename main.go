@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -23,15 +24,16 @@ type TransactionPayload struct {
 }
 
 type Transaction struct {
-	ID          int       `json:"id"`
-	CustomerID  int       `json:"customer_id"`
 	Value       int       `json:"value"`
 	Type        string    `json:"type"`
 	Description string    `json:"description"`
 	CreatedAt   time.Time `json:"created_at"`
 }
 
-var db *sql.DB
+var (
+	db *sql.DB
+	mu sync.Mutex
+)
 
 func initDB() *sql.DB {
 	var err error
@@ -69,6 +71,9 @@ func createTransaction(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Tipo de transação inválido"})
 		return
 	}
+
+	mu.Lock()
+	defer mu.Unlock()
 
 	customerQuery := "SELECT balance, `limit` FROM customers WHERE id = ?"
 	var customer Customer
@@ -142,10 +147,12 @@ func listBankStatement(c *gin.Context) {
 	id := c.Param("id")
 
 	query := `
-		SELECT value, type, description, created_at
+		SELECT value, type, description, transactions.created_at
 		FROM transactions
 		INNER JOIN customers ON transactions.customer_id = customers.id
 		WHERE customers.id = ?
+		ORDER BY transactions.created_at DESC
+		LIMIT 10
 	`
 
 	rows, err := db.Query(query, id)
@@ -170,7 +177,7 @@ func listBankStatement(c *gin.Context) {
 	var customer Customer
 	err = db.QueryRow(customerQuery, id).Scan(&customer.Balance, &customer.Limit)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao obter informações do cliente"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Erro ao obter informações do cliente"})
 		return
 	}
 
